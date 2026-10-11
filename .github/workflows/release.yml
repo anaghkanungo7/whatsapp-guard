@@ -22,8 +22,13 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GUARD_RELEASE_TAG: ${{ github.ref_name }}
-        run: >-
-          gh release create "$GUARD_RELEASE_TAG"
-          dist/WhatsApp-Guard-macOS.zip dist/SHA256SUMS.txt
-          --verify-tag --title "$GUARD_RELEASE_TAG"
-          --notes "Native WhatsApp privacy guard for macOS 13 and later. Supports Apple silicon and Intel Macs. Build is ad hoc signed and not notarized. See README for installation, setup, and limits."
+        run: |
+          if gh release view "$GUARD_RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$GUARD_RELEASE_TAG" \
+              dist/WhatsApp-Guard-macOS.zip dist/SHA256SUMS.txt --clobber
+          else
+            gh release create "$GUARD_RELEASE_TAG" \
+              dist/WhatsApp-Guard-macOS.zip dist/SHA256SUMS.txt \
+              --verify-tag --title "$GUARD_RELEASE_TAG" \
+              --notes "Native WhatsApp privacy guard for macOS 13 and later. Supports Apple silicon and Intel Macs. Build is ad hoc signed and not notarized. See README for installation, setup, and limits."
+          fi
