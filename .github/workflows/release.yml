@@ -1,0 +1,29 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and package
+        run: |
+          chmod +x scripts/*.sh
+          ./scripts/release.sh
+      - name: Publish release files
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GUARD_RELEASE_TAG: ${{ github.ref_name }}
+        run: >-
+          gh release create "$GUARD_RELEASE_TAG"
+          dist/WhatsApp-Guard-macOS.zip dist/SHA256SUMS.txt
+          --verify-tag --title "$GUARD_RELEASE_TAG"
+          --notes "Native WhatsApp privacy guard for macOS 13 and later. Supports Apple silicon and Intel Macs. Build is ad hoc signed and not notarized. See README for installation, setup, and limits."
